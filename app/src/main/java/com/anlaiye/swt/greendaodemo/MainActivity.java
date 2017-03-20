@@ -1,61 +1,27 @@
 package com.anlaiye.swt.greendaodemo;
 
-import android.database.sqlite.SQLiteDatabase;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 
-import com.anye.greendao.gen.DaoMaster;
-import com.anye.greendao.gen.DaoSession;
+import com.anlaiye.swt.greendaodemo.base.BaseActivity;
 import com.anye.greendao.gen.UserDao;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-    private UserDao dao;
+public class MainActivity extends BaseActivity implements View.OnClickListener {
     //    private Button Add, Delect, Update, Query;
     private EditText EtId, EtName, EtAge, EtSex;
     private RecyclerView mRecyclerView;
     private List<User> mUserList = new ArrayList<>();
     private RvAdapter adapter;
-
-    private DaoMaster.DevOpenHelper mHelper;
-    private SQLiteDatabase db;
-    private DaoMaster mDaoMaster;
-    private DaoSession mDaoSession;
+    private UserDao dao;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        initview();
-        openDb();
-        initRv();
-    }
-
-
-    public void initRv() {
-        mUserList = dao.loadAll();
-        adapter = new RvAdapter(this, mUserList, R.layout.rv_item);
-        mRecyclerView.setAdapter(adapter);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-    }
-
-    private void openDb() {
-        mHelper = new DaoMaster.DevOpenHelper(this, "swt-db", null);
-        db = mHelper.getWritableDatabase();
-        mDaoMaster = new DaoMaster(db);
-        mDaoSession = mDaoMaster.newSession();
-        dao = mDaoSession.getUserDao();
-    }
-
-
-    private void initview() {
+    protected void initview() {
         findViewById(R.id.add).setOnClickListener(this);
         findViewById(R.id.delete).setOnClickListener(this);
         findViewById(R.id.update).setOnClickListener(this);
@@ -65,10 +31,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EtAge = (EditText) findViewById(R.id.et_age);
         EtSex = (EditText) findViewById(R.id.et_sex);
         mRecyclerView = (RecyclerView) findViewById(R.id.rv_result);
-
-//        dao =MyApplication.newInstance().getSession().getUserDao();
+        initRv();
 
     }
+
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    protected void getDao() {
+        dao = mDaoSession.getUserDao();
+    }
+
+    @Override
+    protected String getDbName() {
+        return "swt-db";
+    }
+
+    public void initRv() {
+        mUserList = dao.loadAll();
+        adapter = new RvAdapter(this, mUserList, R.layout.rv_item);
+        mRecyclerView.setAdapter(adapter);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+    }
+
 
     public Long getId() {
         Long id = Long.parseLong(EtId.getText().toString());
@@ -110,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 dao.update(UpdateUser);
                 break;
             case R.id.query:
+                dao.loadAll();
                 //动态展示的 所以暂时不需要这个东西
                 break;
         }
